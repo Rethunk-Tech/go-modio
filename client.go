@@ -46,12 +46,12 @@ var (
 	ErrNoFile = errors.New("modio: mod has no file to download")
 )
 
-// UserURL is the API root mod.io assigns to a user's OAuth access token: u-{user-id}.modapi.io.
+// UserURL is the API root mod.io assigns to a user's access token: u-{user-id}.modapi.io.
 func UserURL(userID int) string { return "https://u-" + strconv.Itoa(userID) + ".modapi.io/v1" }
 
 // Config is what a Client is built from.
 type Config struct {
-	// Token is a read-only OAuth access token, sent as a bearer token. Empty makes every call fail with ErrNoToken.
+	// Token is a read-only personal access token, sent as a bearer token. Empty makes every call fail with ErrNoToken.
 	Token string
 	// UserID, when set, sends calls to the token's own host (UserURL) instead of BaseURL.
 	UserID int

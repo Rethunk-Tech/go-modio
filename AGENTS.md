@@ -1,6 +1,6 @@
 # AGENTS.md
 
-`modio` is a read-only client for the mod.io REST API v1, signed with a user's OAuth access token. Mortar imports it; it imports only go-httpkit and never a consumer package.
+`modio` is a read-only client for the mod.io REST API v1, signed with a user's personal access token. Mortar imports it; it imports only go-httpkit and never a consumer package.
 
 ## Gate
 
