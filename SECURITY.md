@@ -14,10 +14,9 @@ Please do not open a public issue for a suspected vulnerability first.
 
 ## What is in scope
 
-<!-- scaffold: the untrusted inputs this package handles, and each property a crafted input must not
-break (an escape, an unbounded allocation, a panic). One bullet each, naming the API. -->
+- API answers (`Search`, `Mod`, `Files`, `Dependencies`, `Tags`, `Me`) are decoded from JSON capped at 16 MiB and never panic on malformed bodies (`FuzzDecoders`).
+- The access token travels in a header only, never in a URL or error text, and a redirect to another origin is refused.
 
 ## What is out of scope
 
-<!-- scaffold: what the caller is trusted to have checked already, and behaviour that is intended
-rather than a vulnerability. -->
+The caller verifies a downloaded file against `File.MD5` and checks `File.Download.BinaryURL` before fetching it; the client does not download files.

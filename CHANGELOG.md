@@ -6,4 +6,9 @@ Notable changes to `go-modio`. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- `Client`: Search (text, tags, ids, sorts), Mod, Files with MD5, Dependencies (recursive), Tags and Me over the mod.io API with a read-only token, the per-user host and the platform header.
+- `Denied` and `*httpkit.RateLimitError` to tell a bad token from a rate limit.
+
 [Unreleased]: https://github.com/Rethunk-Tech/go-modio/commits/main

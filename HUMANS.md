@@ -8,13 +8,26 @@ Run and use `go-modio`. Internals: [AGENTS.md](AGENTS.md).
 go get github.com/Rethunk-Tech/go-modio
 ```
 
-<!-- scaffold: the smallest complete Go example of the main entry point, compiled in your head
-against the real API: imports implied, errors handled. -->
+```go
+c := modio.New(modio.Config{Token: token, UserID: 7, Platform: "windows"})
+list, err := c.Search(ctx, modio.SearchQuery{GameID: 3659, Sort: modio.SortDownloads})
+if err != nil {
+	return err
+}
+for _, m := range list.Data {
+	fmt.Println(m.Name, m.Modfile.VersionName(), m.Modfile.MD5())
+}
+```
 
 ## Contracts
 
-<!-- scaffold: a two-column table, one row per exported entry point or behaviour a caller depends
-on: what it refuses, what it guarantees on failure, what it never does. -->
+| Entry point | Contract |
+| --- | --- |
+| `New` | Never fails; an empty token makes every call return `ErrNoToken` without sending. |
+| `Client` calls | A 401 satisfies `Denied`; a 429 is `*httpkit.RateLimitError`; other statuses are `*httpkit.StatusError`. |
+| `Config.UserID` | Sends calls to `UserURL(id)`; `BaseURL` overrides it. |
+| `File.MD5` | The API's only digest, lowercase; the caller verifies it. |
+| `Dependencies` | Lists only; never installs. |
 
 ## Requirements
 

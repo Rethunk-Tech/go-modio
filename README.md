@@ -11,8 +11,7 @@
 
 Client for the mod.io REST API v1: search, sorts, mod details, files, dependencies, per-user API hosts and MD5-checked file addresses. Package `modio`, module `github.com/Rethunk-Tech/go-modio`.
 
-<!-- scaffold: one short paragraph on what the package guarantees and why it exists, in plain
-words. -->
+Reads mod.io through a user's own read-only token, with errors a caller can tell apart: bad token, rate limit, other status.
 
 ## Quick start
 
@@ -24,7 +23,10 @@ A worked example and the contracts: [HUMANS.md](HUMANS.md).
 
 ## Features
 
-<!-- scaffold: 3 to 6 bullets, each a capability a caller can rely on. No roadmap. -->
+- Search a game's mods by text, tags and ids, sorted by popularity, downloads, rating, update or name.
+- Mod details, files with MD5 digests, tags and the signed-in account.
+- Dependencies, recursive on request.
+- Per-user API host (`u-{user-id}.modapi.io`) and the platform header.
 
 ## Documentation
 

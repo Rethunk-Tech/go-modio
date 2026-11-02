@@ -1,7 +1,6 @@
 # AGENTS.md
 
-<!-- scaffold: two or three sentences: what package `modio` does, who imports it, and what it never
-imports (no consumer package). -->
+`modio` is a read-only client for the mod.io REST API v1, signed with a user's OAuth access token. Mortar imports it; it imports only go-httpkit and never a consumer package.
 
 ## Gate
 
@@ -10,9 +9,14 @@ cannot resolve that check from PATH.
 
 ## Shape
 
-<!-- scaffold: the invariants a change must keep, each with its reason: what stays unexported and
-why, which function is the single path for what, which bound is policy and which is not. -->
+- `Client.get` is the single request path: it refuses an empty token before sending (ErrNoToken), caps the body, refuses cross-origin redirects so the token stays with the API, and turns a 429 into a `*httpkit.RateLimitError` carrying Retry-After.
+- `File.Download.BinaryURL` can expire, so a caller reads the file again right before each download; the client never caches one.
+- The only hash the API gives is MD5; `File.MD5` lowercases it, and a caller checks it after downloading.
+- Dependencies include soft credit links, so `Dependencies` only lists; installing is the caller's decision.
 
 ## Files
 
-<!-- scaffold: a `| File | Holds |` table, one row per non-test Go file. -->
+| File | Holds |
+| --- | --- |
+| `client.go` | Config, Client, the request path, Search, Mod, Files, Dependencies, Tags, Me, Denied, UserURL |
+| `types.go` | Mod, File, ModList, User and their helpers |
