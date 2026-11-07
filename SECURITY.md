@@ -19,4 +19,4 @@ Please do not open a public issue for a suspected vulnerability first.
 
 ## What is out of scope
 
-The caller verifies a downloaded file against `File.MD5` and checks `File.Download.BinaryURL` before fetching it; the client does not download files.
+The caller verifies a downloaded file against `File.MD5` and fetches only a file whose `Downloadable` is true (an https address and a well-formed MD5); the client does not download files.

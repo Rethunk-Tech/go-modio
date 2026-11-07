@@ -12,7 +12,7 @@ import (
 const timberAPI = `{"id":42,"name":"TimberAPI","summary":"api","profile_url":"https://mod.io/g/timberborn/m/timberapi",
 "date_updated":1775230769,"maturity_option":8,"submitted_by":{"username":"eyes"},"tags":[{"name":"Mod"}],
 "stats":{"downloads_total":125963,"ratings_positive":143},
-"modfile":{"id":9,"filesize":2048,"filename":"t.zip","version":"","filehash":{"md5":"ABC"},"download":{"binary_url":"https://g.modapi.io/f/9"}}}`
+"modfile":{"id":9,"filesize":2048,"filename":"t.zip","version":"","filehash":{"md5":"0123456789ABCDEF0123456789abcdef"},"download":{"binary_url":"https://g.modapi.io/f/9"}}}`
 
 func fake(t *testing.T) *Client {
 	t.Helper()
@@ -60,6 +60,32 @@ func fake(t *testing.T) *Client {
 	return New(Config{Token: " tok ", Platform: "windows", BaseURL: srv.URL})
 }
 
+func TestDownloadableNeedsHTTPSAndADigest(t *testing.T) {
+	t.Parallel()
+	const digest = "0123456789abcdef0123456789abcdef"
+	file := func(url, md5 string) File {
+		f := File{ID: 9}
+		f.Download.BinaryURL = url
+		f.Filehash.MD5 = md5
+		return f
+	}
+	if !file("https://g.modapi.io/f/9", digest).Downloadable() {
+		t.Error("https with a digest should download")
+	}
+	for name, f := range map[string]File{
+		"http":         file("http://g.modapi.io/f/9", digest),
+		"no scheme":    file("g.modapi.io/f/9", digest),
+		"no digest":    file("https://g.modapi.io/f/9", ""),
+		"short digest": file("https://g.modapi.io/f/9", "abc"),
+		"not hex":      file("https://g.modapi.io/f/9", "zz23456789abcdef0123456789abcdef"),
+		"no address":   file("", digest),
+	} {
+		if f.Downloadable() {
+			t.Errorf("%s: should not download", name)
+		}
+	}
+}
+
 func TestCalls(t *testing.T) {
 	t.Parallel()
 	c := fake(t)
@@ -72,7 +98,7 @@ func TestCalls(t *testing.T) {
 		t.Fatalf("search = %+v, %v", list, err)
 	}
 	m := list.Data[0]
-	if !m.Explicit() || m.Modfile.VersionName() != "9" || m.Modfile.MD5() != "abc" || !m.Modfile.Downloadable() {
+	if !m.Explicit() || m.Modfile.VersionName() != "9" || m.Modfile.MD5() != "0123456789abcdef0123456789abcdef" || !m.Modfile.Downloadable() {
 		t.Errorf("mod = %+v", m)
 	}
 	if got, err := c.Search(ctx, SearchQuery{GameID: 3659, IDs: []int{42, 43}}); err != nil || len(got.Data) != 1 {

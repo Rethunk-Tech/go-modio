@@ -2,6 +2,7 @@ package modio
 
 import (
 	"cmp"
+	"encoding/hex"
 	"strconv"
 	"strings"
 )
@@ -25,11 +26,26 @@ type File struct {
 // VersionName is the file's own version, or its id when the author left it blank.
 func (f File) VersionName() string { return cmp.Or(strings.TrimSpace(f.Version), strconv.Itoa(f.ID)) }
 
-// MD5 is the lowercase hex digest the API publishes, its only hash.
+// MD5 is the lowercase hex digest the API publishes, its only hash. It is empty when the API gave none, which
+// Downloadable refuses.
 func (f File) MD5() string { return strings.ToLower(f.Filehash.MD5) }
 
-// Downloadable reports whether the file carries an address.
-func (f File) Downloadable() bool { return f.ID != 0 && f.Download.BinaryURL != "" }
+// Downloadable reports whether the file can be fetched and checked: it has an https address and a well-formed MD5.
+// A file without a digest would install unverified, and an http address would download in cleartext.
+func (f File) Downloadable() bool {
+	return f.ID != 0 && strings.HasPrefix(strings.ToLower(f.Download.BinaryURL), "https://") && validMD5(f.Filehash.MD5)
+}
+
+// md5HexLen is the length of an MD5 digest in hex.
+const md5HexLen = 32
+
+func validMD5(digest string) bool {
+	if len(digest) != md5HexLen {
+		return false
+	}
+	_, err := hex.DecodeString(digest)
+	return err == nil
+}
 
 // Mod is one mod listing.
 type Mod struct {

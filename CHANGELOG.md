@@ -6,6 +6,10 @@ Notable changes to `go-modio`. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- `File.Downloadable` is false for an `http://` address and for a file with no well-formed MD5, so a caller can't download in cleartext or install a file it can't verify.
+
 ## [0.1.0] - 2026-11-02
 
 ### Added
