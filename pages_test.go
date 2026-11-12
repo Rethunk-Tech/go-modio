@@ -1,7 +1,6 @@
 package modio
 
 import (
-	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +24,7 @@ func pageHandler(t *testing.T) http.HandlerFunc {
 func TestFilesAllPages(t *testing.T) {
 	srv := httptest.NewServer(pageHandler(t))
 	t.Cleanup(srv.Close)
-	files, err := New(Config{Token: "t", BaseURL: srv.URL}).Files(context.Background(), 1, 2)
+	files, err := New(Config{Token: "t", BaseURL: srv.URL}).Files(t.Context(), 1, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +36,7 @@ func TestFilesAllPages(t *testing.T) {
 func TestDependenciesAllPages(t *testing.T) {
 	srv := httptest.NewServer(pageHandler(t))
 	t.Cleanup(srv.Close)
-	mods, err := New(Config{Token: "t", BaseURL: srv.URL}).Dependencies(context.Background(), 1, 2, true)
+	mods, err := New(Config{Token: "t", BaseURL: srv.URL}).Dependencies(t.Context(), 1, 2, true)
 	if err != nil {
 		t.Fatal(err)
 	}

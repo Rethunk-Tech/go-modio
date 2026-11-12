@@ -1,7 +1,6 @@
 package modio
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httptest"
@@ -18,7 +17,7 @@ func TestRateLimitRetryAfterZero(t *testing.T) {
 	}))
 	t.Cleanup(srv.Close)
 	c := New(Config{Token: "t", BaseURL: srv.URL})
-	_, err := c.Me(context.Background())
+	_, err := c.Me(t.Context())
 	var rl *httpkit.RateLimitError
 	if !errors.As(err, &rl) {
 		t.Fatalf("got %v, want RateLimitError", err)
