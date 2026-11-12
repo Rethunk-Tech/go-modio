@@ -200,24 +200,44 @@ func (c *Client) Mod(ctx context.Context, gameID, modID int) (Mod, error) {
 
 // Files lists a mod's files, newest first.
 func (c *Client) Files(ctx context.Context, gameID, modID int) ([]File, error) {
-	var out struct {
-		Data []File `json:"data"`
+	var all []File
+	for offset := 0; ; offset += MaxPageSize {
+		var out struct {
+			Data        []File `json:"data"`
+			ResultTotal int    `json:"result_total"`
+		}
+		params := url.Values{"_sort": {"-date_added"}, "_limit": {strconv.Itoa(MaxPageSize)}, "_offset": {strconv.Itoa(offset)}}
+		if err := c.get(ctx, modPath(gameID, modID, "/files"), params, &out); err != nil {
+			return nil, err
+		}
+		all = append(all, out.Data...)
+		if len(out.Data) < MaxPageSize || offset+len(out.Data) >= out.ResultTotal {
+			return all, nil
+		}
 	}
-	params := url.Values{"_sort": {"-date_added"}, "_limit": {strconv.Itoa(MaxPageSize)}}
-	err := c.get(ctx, modPath(gameID, modID, "/files"), params, &out)
-	return out.Data, err
 }
 
 // Dependencies lists the mods a mod depends on, all levels down when recursive. Creators also list soft credit links
 // here, so a caller offers them and installs none unasked.
 func (c *Client) Dependencies(ctx context.Context, gameID, modID int, recursive bool) ([]Mod, error) {
-	var out ModList
-	params := url.Values{}
-	if recursive {
-		params.Set("recursive", "true")
+	var all []Mod
+	for offset := 0; ; offset += MaxPageSize {
+		var out struct {
+			Data        []Mod `json:"data"`
+			ResultTotal int   `json:"result_total"`
+		}
+		params := url.Values{"_limit": {strconv.Itoa(MaxPageSize)}, "_offset": {strconv.Itoa(offset)}}
+		if recursive {
+			params.Set("recursive", "true")
+		}
+		if err := c.get(ctx, modPath(gameID, modID, "/dependencies"), params, &out); err != nil {
+			return nil, err
+		}
+		all = append(all, out.Data...)
+		if len(out.Data) < MaxPageSize || offset+len(out.Data) >= out.ResultTotal {
+			return all, nil
+		}
 	}
-	err := c.get(ctx, modPath(gameID, modID, "/dependencies"), params, &out)
-	return out.Data, err
 }
 
 // Tags lists the names of a game's visible tags.
