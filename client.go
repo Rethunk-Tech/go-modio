@@ -134,6 +134,9 @@ func rateLimited(resp *http.Response) error {
 	e := &httpkit.RateLimitError{}
 	if t, ok := httpkit.RetryAfter(resp.Header.Get("Retry-After")); ok {
 		e.Reset = t
+	} else {
+		// mod.io documents Retry-After: 0 as wait 60s; httpkit treats 0 as unset
+		e.Reset = time.Now().Add(60 * time.Second)
 	}
 	return e
 }
