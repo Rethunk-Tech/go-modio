@@ -28,6 +28,7 @@ for _, m := range list.Data {
 | `Config.UserID` | Sends calls to `UserURL(id)`; `BaseURL` overrides it. |
 | `File.MD5` | The API's only digest, lowercase; the caller verifies it. |
 | `Dependencies` | Lists only; never installs. |
+| `Files`, `Dependencies` | Follow every page up to 100; an answer that claims more is an error. |
 
 ## Requirements
 

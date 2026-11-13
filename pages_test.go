@@ -1,10 +1,14 @@
 package modio
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func pageHandler(t *testing.T) http.HandlerFunc {
@@ -42,5 +46,24 @@ func TestDependenciesAllPages(t *testing.T) {
 	}
 	if len(mods) != 101 {
 		t.Fatalf("got %d mods, want 101", len(mods))
+	}
+}
+
+func TestPagingStopsAtAServerThatNeverEnds(t *testing.T) {
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits.Add(1)
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": make([]struct{}, MaxPageSize), "result_total": 1 << 40})
+	}))
+	t.Cleanup(srv.Close)
+	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+	defer cancel()
+	c := New(Config{Token: "t", BaseURL: srv.URL})
+	if _, err := c.Files(ctx, 1, 2); err == nil || errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Files: %v after %d pages", err, hits.Load())
+	}
+	hits.Store(0)
+	if _, err := c.Dependencies(ctx, 1, 2, true); err == nil || errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("Dependencies: %v after %d pages", err, hits.Load())
 	}
 }

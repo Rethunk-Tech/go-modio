@@ -24,6 +24,8 @@ const (
 	requestTimeout = 20 * time.Second
 	// maxBody caps one API answer.
 	maxBody = 16 << 20
+	// maxPages bounds one listing, so an answer that always claims more cannot page forever.
+	maxPages = 100
 )
 
 // Sort is a value for SearchQuery.Sort; a leading minus sorts descending.
@@ -35,6 +37,8 @@ const (
 	SortNewest    = "-date_live"
 	SortName      = "name"
 )
+
+var errTooManyPages = fmt.Errorf("modio: listing runs past %d pages", maxPages)
 
 // MaturityExplicit is the Mod.MaturityOption bit for explicit content.
 const MaturityExplicit = 8
@@ -198,10 +202,10 @@ func (c *Client) Mod(ctx context.Context, gameID, modID int) (Mod, error) {
 	return out, err
 }
 
-// Files lists a mod's files, newest first.
+// Files lists a mod's files, newest first. A listing past 100 pages is an error.
 func (c *Client) Files(ctx context.Context, gameID, modID int) ([]File, error) {
 	var all []File
-	for offset := 0; ; offset += MaxPageSize {
+	for offset := 0; offset < maxPages*MaxPageSize; offset += MaxPageSize {
 		var out struct {
 			Data        []File `json:"data"`
 			ResultTotal int    `json:"result_total"`
@@ -215,13 +219,14 @@ func (c *Client) Files(ctx context.Context, gameID, modID int) ([]File, error) {
 			return all, nil
 		}
 	}
+	return nil, errTooManyPages
 }
 
 // Dependencies lists the mods a mod depends on, all levels down when recursive. Creators also list soft credit links
-// here, so a caller offers them and installs none unasked.
+// here, so a caller offers them and installs none unasked. A listing past 100 pages is an error.
 func (c *Client) Dependencies(ctx context.Context, gameID, modID int, recursive bool) ([]Mod, error) {
 	var all []Mod
-	for offset := 0; ; offset += MaxPageSize {
+	for offset := 0; offset < maxPages*MaxPageSize; offset += MaxPageSize {
 		var out struct {
 			Data        []Mod `json:"data"`
 			ResultTotal int   `json:"result_total"`
@@ -238,6 +243,7 @@ func (c *Client) Dependencies(ctx context.Context, gameID, modID int, recursive 
 			return all, nil
 		}
 	}
+	return nil, errTooManyPages
 }
 
 // Tags lists the names of a game's visible tags.
