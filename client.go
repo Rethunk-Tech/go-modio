@@ -171,7 +171,7 @@ func (c *Client) Search(ctx context.Context, q SearchQuery) (ModList, error) {
 	if q.Sort != "" {
 		params.Set("_sort", q.Sort)
 	}
-	params.Set("_limit", strconv.Itoa(min(cmp.Or(q.Limit, MaxPageSize), MaxPageSize)))
+	params.Set("_limit", strconv.Itoa(min(cmp.Or(max(q.Limit, 0), MaxPageSize), MaxPageSize)))
 	params.Set("_offset", strconv.Itoa(max(q.Offset, 0)))
 	if len(q.TagsIn) > 0 {
 		params.Set("tags-in", strings.Join(q.TagsIn, ","))

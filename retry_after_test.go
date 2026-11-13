@@ -27,3 +27,19 @@ func TestRateLimitRetryAfterZero(t *testing.T) {
 		t.Fatalf("Reset %v, want ~60s from now", rl.Reset)
 	}
 }
+
+func TestSearchClampsNegativeLimit(t *testing.T) {
+	var got string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = r.URL.Query().Get("_limit")
+		_, _ = w.Write([]byte(`{"data":[],"result_total":0}`))
+	}))
+	t.Cleanup(srv.Close)
+	c := New(Config{Token: "t", BaseURL: srv.URL})
+	if _, err := c.Search(t.Context(), SearchQuery{GameID: 1, Limit: -5}); err != nil {
+		t.Fatal(err)
+	}
+	if got != "100" {
+		t.Fatalf("_limit = %q, want 100", got)
+	}
+}
