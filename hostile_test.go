@@ -54,7 +54,7 @@ func TestTheTokenStaysOffARedirect(t *testing.T) {
 	}))
 	t.Cleanup(other.Close)
 	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, other.URL+r.URL.Path, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, other.URL+"/me", http.StatusTemporaryRedirect)
 	}))
 	t.Cleanup(api.Close)
 	if _, err := New(Config{Token: "SECRET", BaseURL: api.URL}).Me(t.Context()); err == nil {
