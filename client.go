@@ -43,10 +43,8 @@ var errTooManyPages = fmt.Errorf("modio: listing runs past %d pages", maxPages)
 // MaturityExplicit is the Mod.MaturityOption bit for explicit content.
 const MaturityExplicit = 8
 
-var (
-	// ErrNoToken means the Client has no access token; nothing is sent.
-	ErrNoToken = errors.New("modio: no access token")
-)
+// ErrNoToken means the Client has no access token; nothing is sent.
+var ErrNoToken = errors.New("modio: no access token")
 
 // UserURL is the API root mod.io assigns to a user's access token: u-{user-id}.modapi.io.
 func UserURL(userID int) string { return "https://u-" + strconv.Itoa(userID) + ".modapi.io/v1" }
