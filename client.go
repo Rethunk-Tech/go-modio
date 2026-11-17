@@ -46,8 +46,6 @@ const MaturityExplicit = 8
 var (
 	// ErrNoToken means the Client has no access token; nothing is sent.
 	ErrNoToken = errors.New("modio: no access token")
-	// ErrNoFile means a mod has no downloadable file.
-	ErrNoFile = errors.New("modio: mod has no file to download")
 )
 
 // UserURL is the API root mod.io assigns to a user's access token: u-{user-id}.modapi.io.

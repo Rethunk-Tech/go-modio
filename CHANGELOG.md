@@ -6,6 +6,10 @@ Notable changes to `go-modio`. The format follows
 
 ## [Unreleased]
 
+### Removed
+
+- `ErrNoFile`: no function returned it.
+
 ## [0.1.1] - 2026-11-07
 
 ### Changed
