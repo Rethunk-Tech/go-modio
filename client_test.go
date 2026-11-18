@@ -72,6 +72,11 @@ func TestDownloadableNeedsHTTPSAndADigest(t *testing.T) {
 	if !file("https://g.modapi.io/f/9", digest).Downloadable() {
 		t.Error("https with a digest should download")
 	}
+	if !file("HTTPS://g.modapi.io/f/9", digest).Downloadable() {
+		t.Error("uppercase https with a digest should download")
+	}
+	zero := file("https://g.modapi.io/f/9", digest)
+	zero.ID = 0
 	for name, f := range map[string]File{
 		"http":         file("http://g.modapi.io/f/9", digest),
 		"no scheme":    file("g.modapi.io/f/9", digest),
@@ -79,10 +84,28 @@ func TestDownloadableNeedsHTTPSAndADigest(t *testing.T) {
 		"short digest": file("https://g.modapi.io/f/9", "abc"),
 		"not hex":      file("https://g.modapi.io/f/9", "zz23456789abcdef0123456789abcdef"),
 		"no address":   file("", digest),
+		"zero id":      zero,
 	} {
 		if f.Downloadable() {
 			t.Errorf("%s: should not download", name)
 		}
+	}
+}
+
+func TestABlankVersionFallsBackToTheFileID(t *testing.T) {
+	t.Parallel()
+	if got := (File{ID: 9, Version: "  "}).VersionName(); got != "9" {
+		t.Fatalf("whitespace version = %q, want 9", got)
+	}
+}
+
+func TestExplicitIsTheMaturityBit(t *testing.T) {
+	t.Parallel()
+	if (Mod{}).Explicit() {
+		t.Error("zero option should not be explicit")
+	}
+	if !(Mod{MaturityOption: MaturityExplicit | 1}).Explicit() {
+		t.Error("explicit bit among others should be explicit")
 	}
 }
 
@@ -137,6 +160,46 @@ func TestErrors(t *testing.T) {
 	}
 	if UserURL(7) != "https://u-7.modapi.io/v1" || New(Config{Token: "t", UserID: 7}).base != UserURL(7) {
 		t.Error("user host")
+	}
+}
+
+func TestRequestsSendTheConfiguredUserAgent(t *testing.T) {
+	t.Parallel()
+	var got string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		got = r.Header.Get("User-Agent")
+		_, _ = w.Write([]byte(`{"id":1}`))
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := New(Config{Token: "t", BaseURL: srv.URL, UserAgent: "mortar/1"}).Me(t.Context()); err != nil {
+		t.Fatal(err)
+	}
+	if got != "mortar/1" {
+		t.Fatalf("User-Agent = %q, want mortar/1", got)
+	}
+}
+
+func TestAnUnparseableBaseURLIsNotSent(t *testing.T) {
+	t.Parallel()
+	_, err := New(Config{Token: "t", BaseURL: "http://["}).Me(t.Context())
+	if err == nil {
+		t.Fatal("unparseable base URL was sent")
+	}
+}
+
+func TestDependenciesOmitRecursiveWhenNotAsked(t *testing.T) {
+	t.Parallel()
+	var recursive string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		recursive = r.URL.Query().Get("recursive")
+		_, _ = w.Write([]byte(`{"data":[]}`))
+	}))
+	t.Cleanup(srv.Close)
+	if _, err := New(Config{Token: "t", BaseURL: srv.URL}).Dependencies(t.Context(), 1, 2, false); err != nil {
+		t.Fatal(err)
+	}
+	if recursive != "" {
+		t.Fatalf("recursive = %q, want omitted", recursive)
 	}
 }
 

@@ -49,6 +49,31 @@ func TestDependenciesAllPages(t *testing.T) {
 	}
 }
 
+func TestPagingStopsWhenAFullPageMeetsTheTotal(t *testing.T) {
+	var hits atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		hits.Add(1)
+		_ = json.NewEncoder(w).Encode(map[string]any{"data": make([]struct{}, MaxPageSize), "result_total": MaxPageSize})
+	}))
+	t.Cleanup(srv.Close)
+	c := New(Config{Token: "t", BaseURL: srv.URL})
+	files, err := c.Files(t.Context(), 1, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) != MaxPageSize || hits.Load() != 1 {
+		t.Fatalf("Files: %d files after %d pages, want %d on one page", len(files), hits.Load(), MaxPageSize)
+	}
+	hits.Store(0)
+	mods, err := c.Dependencies(t.Context(), 1, 2, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(mods) != MaxPageSize || hits.Load() != 1 {
+		t.Fatalf("Dependencies: %d mods after %d pages, want %d on one page", len(mods), hits.Load(), MaxPageSize)
+	}
+}
+
 func TestPagingStopsAtAServerThatNeverEnds(t *testing.T) {
 	var hits atomic.Int32
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {

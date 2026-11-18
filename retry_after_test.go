@@ -43,3 +43,20 @@ func TestSearchClampsNegativeLimit(t *testing.T) {
 		t.Fatalf("_limit = %q, want 100", got)
 	}
 }
+
+func TestSearchClampsOversizeLimitAndNegativeOffset(t *testing.T) {
+	var limit, offset string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		limit = r.URL.Query().Get("_limit")
+		offset = r.URL.Query().Get("_offset")
+		_, _ = w.Write([]byte(`{"data":[],"result_total":0}`))
+	}))
+	t.Cleanup(srv.Close)
+	c := New(Config{Token: "t", BaseURL: srv.URL})
+	if _, err := c.Search(t.Context(), SearchQuery{GameID: 1, Limit: MaxPageSize + 1, Offset: -3}); err != nil {
+		t.Fatal(err)
+	}
+	if limit != "100" || offset != "0" {
+		t.Fatalf("_limit=%q _offset=%q, want 100 and 0", limit, offset)
+	}
+}
