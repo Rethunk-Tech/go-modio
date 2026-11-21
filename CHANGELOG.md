@@ -6,6 +6,8 @@ Notable changes to `go-modio`. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-21
+
 ### Removed
 
 - `ErrNoFile`: no function returned it.
@@ -23,6 +25,7 @@ Notable changes to `go-modio`. The format follows
 - `Client`: Search (text, tags, ids, sorts), Mod, Files with MD5, Dependencies (recursive), Tags and Me over the mod.io API with a read-only token, the per-user host and the platform header.
 - `Denied` and `*httpkit.RateLimitError` to tell a bad token from a rate limit.
 
-[Unreleased]: https://github.com/Rethunk-Tech/go-modio/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/Rethunk-Tech/go-modio/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Rethunk-Tech/go-modio/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/Rethunk-Tech/go-modio/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Rethunk-Tech/go-modio/releases/tag/v0.1.0
